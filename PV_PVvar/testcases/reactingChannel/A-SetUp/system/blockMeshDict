@@ -1,0 +1,210 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 1.0;
+
+// Constants
+pi 3.14159265459;
+cos45    #eval{ cos(degToRad(45.0)) };
+sin45    #eval{ sin(degToRad(45.0)) };
+cos22_5  #eval{ cos(degToRad(22.5)) };
+sin22_5  #eval{ sin(degToRad(22.5)) };
+cos60    #eval{ cos(degToRad(60.0)) };
+sin60    #eval{ sin(degToRad(60.0)) };
+cos30    #eval{ cos(degToRad(30.0)) };
+sin30    #eval{ sin(degToRad(30.0)) };
+cos15    #eval{ cos(degToRad(15.0)) };
+sin15    #eval{ sin(degToRad(15.0)) };
+
+// Dimensions
+delta   8.75e-3;
+alpha   0.95; 
+beta    6.0;
+gamma   3.0;
+epsilon 0.5;
+
+H     #eval{ 2.0*$delta };
+L     #eval{ $beta  * $delta };
+W     #eval{ $gamma * $delta };
+
+// Cell distribution
+GradingX1     1;
+GradingX2     1;
+
+GradingY1     10;
+GradingY2     -10;
+
+// Cell size
+dx CELLSIZE;
+
+// Number of cells
+nCellsX1     #eval{round( 0.5*$epsilon*$L/$dx )};
+nCellsX2     #eval{round( 0.5*(1 - $epsilon)*$L/$dx )};
+
+nCellsY1     #eval{round( 0.5*$H/$dx )};
+nCellsY2     #eval{round( 0.5*$H/$dx )};
+
+nCellsZ      #eval{round( 0.5*$W/$dx )};
+
+// Points
+x0  0.0;
+y0  0.0;
+x1  #eval{ $epsilon * $L };
+y1  0.0;
+x2  $L;
+y2  0.0;
+x3  0.0;
+y3  #eval{ 0.5 * $H };
+x4  #eval{ $epsilon * $L };
+y4  #eval{ 0.5 * $H };
+x5  $L;
+y5  #eval{ 0.5 * $H };
+x6  0.0;
+y6  $H;
+x7  #eval{ $epsilon * $L };
+y7  $H;
+x8  $L;
+y8  $H;
+
+z0 0.0;
+z1 $W;
+
+vertices
+(
+    name v000 ($x0  $y0  $z0)
+    name v001 ($x1  $y1  $z0)
+    name v002 ($x2  $y2  $z0)
+    name v003 ($x3  $y3  $z0)
+    name v004 ($x4  $y4  $z0)
+    name v005 ($x5  $y5  $z0)
+    name v006 ($x6  $y6  $z0)
+    name v007 ($x7  $y7  $z0)
+    name v008 ($x8  $y8  $z0)
+    
+    name v100 ($x0  $y0  $z1)
+    name v101 ($x1  $y1  $z1)
+    name v102 ($x2  $y2  $z1)
+    name v103 ($x3  $y3  $z1)
+    name v104 ($x4  $y4  $z1)
+    name v105 ($x5  $y5  $z1)
+    name v106 ($x6  $y6  $z1)
+    name v107 ($x7  $y7  $z1)
+    name v108 ($x8  $y8  $z1)
+);
+
+blocks
+(
+    hex (v000 v001 v004 v003 v100 v101 v104 v103) ($nCellsX1 $nCellsY1 $nCellsZ) simpleGrading ($GradingX1 $GradingY1 1)
+    hex (v001 v002 v005 v004 v101 v102 v105 v104) ($nCellsX2 $nCellsY1 $nCellsZ) simpleGrading ($GradingX2 $GradingY1 1)
+    hex (v003 v004 v007 v006 v103 v104 v107 v106) ($nCellsX1 $nCellsY2 $nCellsZ) simpleGrading ($GradingX1 $GradingY2 1)
+    hex (v004 v005 v008 v007 v104 v105 v108 v107) ($nCellsX2 $nCellsY2 $nCellsZ) simpleGrading ($GradingX2 $GradingY2 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (v000 v003 v103 v100)
+            (v003 v006 v106 v103)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (v002 v102 v105 v005)
+            (v005 v105 v108 v008)
+        );
+    }
+    
+    topIsothermalWall
+    {
+        type wall;
+        faces
+        (
+            (v006 v007 v107 v106)
+        );
+    }
+
+    topAdiabaticWall
+    {
+        type wall;
+        faces
+        (
+            (v007 v008 v108 v107)
+        );
+    }
+
+    bottomIsothermalWall
+    {
+        type wall;
+        faces
+        (
+            (v000 v100 v101 v001)
+        );
+    }
+     
+    bottomAdiabaticWall
+    {
+        type wall;
+        faces
+        (
+            (v001 v101 v102 v002)
+        );
+    }
+     
+    front
+    {
+        type           cyclic;
+        neighbourPatch back;
+        faces
+        (
+            (v000 v001 v004 v003)
+            (v001 v002 v005 v004)
+            (v003 v004 v007 v006)
+            (v004 v005 v008 v007)
+        );
+    }
+           
+    back
+    {
+        type           cyclic;
+        neighbourPatch front;
+        faces
+        (
+            (v100 v103 v104 v101)
+            (v101 v104 v105 v102)
+            (v103 v106 v107 v104)
+            (v104 v107 v108 v105)
+        );
+    }
+
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
