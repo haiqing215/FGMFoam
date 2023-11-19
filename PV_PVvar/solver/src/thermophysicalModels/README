@@ -1,0 +1,1 @@
+reactionThermo is only included to ensure coherence between the fluidThermo library and the combustionModel library. No adaptations were made to these classes. 

@@ -1,0 +1,1 @@
+CombustionModel and combustionModel are only included to ensure coherence between the thermo library and the FGM combustion model. No adapatations were made to these classes. 

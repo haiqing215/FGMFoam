@@ -1,0 +1,27 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+makeType=${1:-libso}
+set -x
+clear
+
+# Uncomment following lines if compiling on the cluster
+#module load NewBuild/AMD OpenFOAM/v2206-foss-2022a
+#source ${FOAM_BASH}
+
+# CLEAN-UP LIBRARIES
+#wclean ./src/thermophysicalModels/basic/
+#wclean ./src/thermophysicalModels/reactionThermo/
+wclean ./src/lookUp/
+#wclean ./src/combustionModel/
+# CLEAN-UP SOLVERS
+#wclean ./applications/FGMFoam/
+
+# CREATE LIBRARIES
+#wmake $makeType ./src/thermophysicalModels/basic/
+#wmake $makeType ./src/thermophysicalModels/reactionThermo/
+wmake $makeType ./src/lookUp/
+#wmake $makeType ./src/combustionModel/
+# CREATE SOLVERS
+#wmake ./applications/FGMFoam/
+
+exit 0

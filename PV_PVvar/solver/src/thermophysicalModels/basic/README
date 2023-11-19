@@ -1,0 +1,1 @@
+Only the fluidThermo is adapted here. FGM related variables are added to the thermo library. 

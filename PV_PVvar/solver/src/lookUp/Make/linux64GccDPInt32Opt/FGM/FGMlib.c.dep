@@ -1,0 +1,5 @@
+$(OBJECTS_DIR)/FGM/FGMlib.c.dep: \
+FGM/FGMlib.c \
+FGM/FGMlib.h \
+
+#END
