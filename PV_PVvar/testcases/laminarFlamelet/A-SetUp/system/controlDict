@@ -1,0 +1,86 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application       FGMFoam;
+startFrom         startTime;
+startTime         0;
+stopAt            endTime;
+endTime           SIMULATIONTIME;
+deltaT            SIMULATIONDELTATIME;
+writeControl      adjustableRunTime;
+writeInterval     SIMULATIONWRITETIME;
+purgeWrite        0;
+writeFormat       ascii;
+writePrecision    9;
+writeCompression  off;
+timeFormat        general;
+timePrecision     11;
+runTimeModifiable true;
+adjustTimeStep    no;
+maxCo             1.0;
+maxDeltaT         1;
+
+libs ("libnetworkBoundaryCondition.so");
+
+functions
+{
+//    volumeAveragedValue
+//    {
+//        type            volFieldValue;
+//        libs            (fieldFunctionObjects);
+//        fields          (p T rho O2 CH4 CO CO2 H2 H2O OH ProdRate_CH4 ProdRate_O2 U);
+//        operation       volAverage;
+//        regionType      all;
+//        executeControl  timeStep;
+//        writePrecision  9;
+//        writeControl    timeStep;
+//        writeInterval   1;
+//        writeFields     false;
+//    }
+    
+//    inletAveragedValue
+//    {
+//        type            surfaceFieldValue;
+//        libs            (fieldFunctionObjects);
+//        fields          (p T rho O2 CH4 U);
+//        operation       average;
+//        regionType      patch;
+//        name            inlet;
+//        executeControl  timeStep;
+//        writePrecision  9;
+//        writeControl    timeStep;
+//        writeInterval   1;
+//        writeFields     false;
+//    }
+  
+//    outletAveragedValue
+//    {
+//        type            surfaceFieldValue;
+//        libs            (fieldFunctionObjects);
+//        fields          (p T rho O2 CH4 CO CO2 H2 H2O OH CH2O U);
+//        operation       average;
+//        regionType      patch;
+//        name            outlet;
+//        executeControl  timeStep;
+//        writePrecision  9;
+//        writeControl    timeStep;
+//        writeInterval   1;
+//        writeFields     false;
+//    }
+}
+
+// ************************************************************************* //

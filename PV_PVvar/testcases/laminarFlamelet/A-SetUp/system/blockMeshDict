@@ -1,0 +1,114 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 1.0;
+
+width                2.5e-3;  // domain width  [m]
+xmin                -5.0e-2;  // domain open end coordinate [m]
+xminRefinement      -1.0e-2;  // start refinement coordinate [m] 
+xmax                 5.0e-2;  // domain closed end coordinate [m]
+xmaxRefinement       2.0e-2;  // end refinement coordinate [m]
+negwidth             #eval{ -0.5*$width };
+poswidth             #eval{  0.5*$width };
+nCellsRef            #eval{ round(($xmaxRefinement-$xminRefinement)/10.0e-06) };
+
+// openfoamwiki.net/index.php/Scripts/blockMesh_grading_calculation
+// Inlet domain length 4.0e-2 - width start cell 2.0e-3 - width end cell 20.0e-6
+// Outlet domain length 3.0e-2 - width start cell 20.0e-6 - width end cell 2.0e-3
+// for cell size of 20.0e-6 [m] - recalculate when using different size
+
+nCellsMin            105;
+gradingMin           0.005;
+nCellsMax            78;
+gradingMax           200;
+
+vertices
+(
+    name v000 ($xmin            $negwidth  $negwidth)
+    name v010 ($xmin            $poswidth  $negwidth)
+    name v011 ($xmin            $poswidth  $poswidth)
+    name v001 ($xmin            $negwidth  $poswidth)
+    name v100 ($xminRefinement  $negwidth  $negwidth)
+    name v110 ($xminRefinement  $poswidth  $negwidth)
+    name v111 ($xminRefinement  $poswidth  $poswidth)
+    name v101 ($xminRefinement  $negwidth  $poswidth)
+    name v200 ($xmaxRefinement  $negwidth  $negwidth)
+    name v210 ($xmaxRefinement  $poswidth  $negwidth)
+    name v211 ($xmaxRefinement  $poswidth  $poswidth)
+    name v201 ($xmaxRefinement  $negwidth  $poswidth)
+    name v300 ($xmax            $negwidth  $negwidth)
+    name v310 ($xmax            $poswidth  $negwidth)
+    name v311 ($xmax            $poswidth  $poswidth)
+    name v301 ($xmax            $negwidth  $poswidth)
+);
+
+blocks
+(
+    hex (v000 v100 v110 v010 v001 v101 v111 v011) ($nCellsMin 1 1) simpleGrading ($gradingMin 1 1)
+    hex (v100 v200 v210 v110 v101 v201 v211 v111) ($nCellsRef 1 1) simpleGrading (1 1 1)
+    hex (v200 v300 v310 v210 v201 v301 v311 v211) ($nCellsMax 1 1) simpleGrading ($gradingMax 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    closed
+    {
+        type wall;
+        faces
+        (
+            (v000 v010 v011 v001)
+        );
+    }
+
+    open
+    {
+        type path;
+        faces
+        (
+            (v300 v310 v311 v301)
+        );
+    }
+
+    sides
+    {
+        type empty;
+        faces
+        (
+            (v000 v100 v101 v001)
+            (v010 v110 v111 v011)
+            (v000 v100 v110 v010)
+            (v001 v101 v111 v011)
+            (v100 v200 v201 v101)
+            (v110 v210 v211 v111)
+            (v100 v200 v210 v110)
+            (v101 v201 v211 v111)
+            (v200 v300 v301 v201)
+            (v210 v310 v311 v211)
+            (v200 v300 v310 v210)
+            (v201 v301 v311 v211)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
