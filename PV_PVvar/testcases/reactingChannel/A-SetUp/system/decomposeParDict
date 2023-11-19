@@ -16,11 +16,21 @@ FoamFile
 
 numberOfSubdomains NPROCS;
 
-method          scotch; //simple;
+method          scotch;
+
+constraints
+{
+    refinementHistoryMultiDim
+    {
+        // - Decompose cells such that all cell origintating from single cell
+        //   end up on same processor
+        type   refinementHistoryMultiDim;
+    }
+}
 
 //coeffs
 //{
-//    n           (2 32 1);
+//    n           (2 3 1);
 //}
 
 // ************************************************************************* //

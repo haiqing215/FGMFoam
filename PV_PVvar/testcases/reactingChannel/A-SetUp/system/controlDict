@@ -34,11 +34,11 @@ adjustTimeStep    no;
 maxCo             0.5;//1.0;
 maxDeltaT         1;
 
-libs ("libnetworkBoundaryCondition.so");
+libs ("libdynamicLoadBalanceFvMesh.so");
 
 functions
 {
-    writeValues
+/*    writeValues
     {
         type            writeObjects;
         libs            (utilityFunctionObjects);
@@ -97,7 +97,7 @@ functions
         writeControl    adjustableRunTime;
         writeInterval   SIMULATIONWRITETIME;
         enabled         false;
-
+*/
     /*---------------------------------------------------------------------------*\
 
         Total Turbulent Kinect Energy Evaluation
@@ -107,7 +107,7 @@ functions
                 ** Subgrid Reynolds Stress Tensor
 
     \*---------------------------------------------------------------------------*/
-
+/*
         codeExecute
         #{
 			static autoPtr<volScalarField> totalTKE;
@@ -213,5 +213,6 @@ functions
             }
         #};
     }
-}    
+*/
+}
 // ************************************************************************* //

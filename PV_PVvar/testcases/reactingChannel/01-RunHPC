@@ -38,7 +38,7 @@ cd B-Results/
 [ -d ${PWD}/constant ] && rm -rf ${PWD}/constant
 [ -d ${PWD}/system ] && rm -rf ${PWD}/system
 [ -d ${PWD}/postProcessing/ ] && rm -rf ${PWD}/postProcessing/
-[ -f ${PWD}/flamelet.foam ] && rm ${PWD}/flamelet.foam
+[ -f ${PWD}/foam.foam ] && rm ${PWD}/foam.foam
 for resultdir in 0*/; do rm -rf ${resultdir}; done
         
 cp -r ../A-SetUp/constant .
@@ -52,14 +52,13 @@ sed -i "s/SIMULATIONDELTATIME/$simtimestep/" system/controlDict
 sed -i "s/SIMULATIONWRITETIME/$simwritetime/" system/controlDict
 		
 sed -i "s/NPROCS/${nProcs}/" system/decomposeParDict
+sed -i "s/NPROCS/${nProcs}/" system/balanceParDict
     
 sed -i "s/CELLSIZE/${cellSize}/" system/blockMeshDict
 
-sed -i "s/BULKVELOCITY/$Ubulk/" constant/fvOptions
+sed -i "s/INLETTEMPERATURE/${T0}/" 0/T
 
-sed -i "s/INITIALPRESSURE/${p0}/" 0/p
-sed -i "s/INITIALTEMPERATURE/${T0}/" 0/T
-sed -i "s/INITIALPROGRESSVARIABLE/${PV0}/" 0/PV
+sed -i "s/FINALPROGRESSVARIABLE/${PV1}/" system/setFieldsDict
       
 # ==> Run simulation
 [ -d ${PWD}/constant/polyMesh ] && rm -rf ${PWD}/constant/polyMesh

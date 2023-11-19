@@ -48,6 +48,14 @@ solvers
         $U;
     }
 
+    "pcorr.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-10;
+        relTol          0;
+    }
+
     Yi
     {
         solver          PBiCGStab;
