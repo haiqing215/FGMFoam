@@ -25,7 +25,3 @@ int lookupFGM_2D (FGM *fgm, double *x, double *f);
 
 int lookupFGM_ND (FGM *fgm, double *x, double *f);
 
-int lookupFGM_NDIS (FGM *fgm, double *x, double *f);
-
-int NDinterp (FGM *fgm, double *x, double *f);
-

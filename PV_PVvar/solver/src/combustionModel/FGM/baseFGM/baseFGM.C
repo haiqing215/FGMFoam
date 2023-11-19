@@ -110,7 +110,7 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
     // Loop over all cells
     forAll(PVCells, celli)
     {
-        //Info << "------------------- NEW CELL ---------------------" << endl;
+        // Scale the control variables
         controlVariables_[0] = (PVCells[celli] - PVmin)/(PVmax - PVmin);
         controlVariables_[1] = ((PVvarCells[celli] + pow(PVCells[celli],2) - pow(PVmin,2) - 2*controlVariables_[0]*(PVmin*PVmax - pow(PVmin,2)))/(pow((PVmax-PVmin),2))) - pow(controlVariables_[0],2);
         
@@ -128,12 +128,8 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
             controlVariables_[1] = 0.0;
         }
 
-        //Info << "------------------- NEW CELL ---------------------" << endl;
-        //Info << "PV: " << PVCells[celli] << " PV scaled: " << controlVariables_[0] << " PVvar: " << PVvarCells[celli] << " PVvar scaled: " << controlVariables_[1] << endl;
-
         lookupFGM_2D(fgm_,controlVariables_,variables_);
 
-        //Info << "After lookup" << endl;
         for (int i = fgm_->Ncv; i < fgm_->Nvar; i++)
         {
             if (std::strcmp(fgm_->varname[i], "SOURCE_CV1") == 0){
@@ -161,15 +157,6 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
                 psiCells[celli] = variables_[i]/101325.0;
             }
         }
-
-        //Info << "sourcePV: "   << sourcePVCells[celli]   << endl;
-        //Info << "PVsourcePV: " << PVsourcePVCells[celli] << endl;
-        //Info << "DPV: "        << DPVCells[celli]        << endl;
-        //Info << "T: "          << TCells[celli]          << endl;
-        //Info << "mu: "         << muCells[celli]         << endl;
-        //Info << "cp: "         << cp                     << endl;
-        //Info << "lambda: "     << lambda                 << endl;
-        //Info << "psi: "        << psiCells[celli]        << endl;
 
         // If cp and lambda are in the variable list, update alpha
         if (cp != 0 && lambda != 0){
@@ -315,8 +302,5 @@ Foam::combustionModels::baseFGM<ReactionThermo>::Qdot() const
         dimensionedScalar(dimEnergy/dimVolume/dimTime, Zero)
     );
 }
-
-
-
 
 // ************************************************************************* //

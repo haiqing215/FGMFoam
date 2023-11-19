@@ -233,8 +233,7 @@ int lookupFGM_1D (FGM *fgm, double *x, double *f)
 };
 
 int lookupFGM_2D (FGM *fgm, double *x, double *f)
-{
-    
+{    
     int N1 = fgm->Ngrid[0]-1;
     int N1p = N1 + 1;
     int N2 = fgm->Ngrid[1]-1;
@@ -244,23 +243,13 @@ int lookupFGM_2D (FGM *fgm, double *x, double *f)
     
     // Compute extremes of cv1
     double xmin = fgm->data[0];
-    double xmax = fgm->data[N1*Nvar];
-    
-    //printf("N1: %d\n",N1);
-    //printf("N1p: %d\n",N1p);
-    //printf("N2: %d\n",N2);
-    //printf("Nvar: %d\n",Nvar);
-    //printf("xmin: %lf\n",xmin);
-    //printf("xmax: %lf\n",xmax);
-    //printf("*x: %lf\n",*x);
+    double xmax = fgm->data[N1*Nvar]; 
 
     // Compute eta1 by normalising cv1
     eta1 = (*x - xmin) /  (xmax - xmin + 1e-8);
     if (fgm->gridpower[0] >= 0.0) {
       eta1 = pow(eta1, fgm->gridpower[0]);
     }
-    //printf("eta1: %lf\n",eta1);
-    // printf("%e %e %e %e \n",*x,xmin,xmax,eta1);
     
     // Determine mesh point
     i1m = (int) (eta1 * N1);
@@ -279,31 +268,17 @@ int lookupFGM_2D (FGM *fgm, double *x, double *f)
     xmax = w1m * fgm->data[(N2*N1p+i1m)*Nvar+1]
          + w1p * fgm->data[(N2*N1p+i1p)*Nvar+1];
 
-    //printf("*(x+1): %lf\n",*(x+1));
-    //printf("xmin: %lf\n",xmin);
-    //printf("xmax: %lf\n",xmax);
-
     // Compute eta2 from cv2
     eta2 = (*(x+1) - xmin) /  (xmax - xmin + 1e-8);
-    //printf("TEST2\n"); 
     if (fgm->gridpower[1] >= 0.0) {
       eta2 = pow(eta2, fgm->gridpower[1]);
     }
-    //printf("eta2: %lf\n",eta2);
-    // printf("%e %e %e %e \n",*(x+1),xmin,xmax,eta2);
-
-    //printf("N2: %d\n",N2); 
-    //printf("eta2 * N2: %lf\n",eta2 * N2); 
+    
     // Determine mesh point
     i2m = (int) (eta2 * N2);
-    //printf("i2m: %d\n",i2m); 
     i2m = max(0,i2m);
-    //printf("N2: %d\n",N2); 
-    //printf("i2m: %d\n",i2m); 
     i2m = min(N2-1,i2m);
-    //printf("TEST5\n"); 
     i2p = i2m + 1;
-    //printf("TEST6\n"); 
 
     // Determine weight factors
     w2p = eta2 * N2 - i2m;
@@ -749,147 +724,3 @@ int lookupFGM_ND (FGM *fgm, double *cv, double *f)
 
 	return EXIT_SUCCESS;
 };
-
-
-
-int lookupFGM_NDIS (FGM *fgm, double *x, double *f)
-{
-    int i, j, iter;
-    int Nvar = fgm->Nvar;
-    int Ncv = fgm->Ncv;
-    double normres;
-    double delta = 1.e-1;
-    double q[Ncv], qp[Ncv], res[Ncv];
-    double xi[Nvar], xp[Nvar];
-    double Jac[Ncv*Ncv];
-    int LDA, LDB, Nrhs, Ok, pivot[Ncv];
-    
-    /* Initial guess q is set to the middle of the manifold */
-    for (i = 0; i < Ncv; i++) 
-    {
-        q[i] = 0.5 * fgm->Ngrid[i]; 
-    }
-    
-    /* Interpolate cv values, xi, at q and determine the residu xi - x */
-    NDinterp(fgm, q, xi);
-    normres = 0.0;
-    for (i = 0; i < Ncv; i++) 
-    {
-        res[i] = xi[i] - x[i];
-        normres += fabs(res[i]); 
-    }
-    
-    /* Start Newton iteration to find q for which xi(q) = x. */
-    iter = 0;
-    while (normres > 1.e-10 & iter < 10)
-    {
-
-    	/* Compute Jacobian Jac */
-    	for (i = 0; i < Ncv; i++)
-    	{
-    	    for (j = 0; j < Ncv; j++)
-    	    {
-    	    	qp[j] = q[j];
-    	    }
-    	    qp[i] += delta;  // Perturb q
-
-            NDinterp(fgm, qp, xp);
-    	    for (j = 0; j < Ncv; j++)
-    	    {
-    	    	Jac[Ncv*i+j] = ( xp[j] - xi[j] ) / delta;
-    	    	// printf("%e %e %e %e\n",qp[j],q[j],xp[j],xi[j]);
-    	    }
-    	}
-
-    	/* Compute Newton update by solving linear system Jac dq = -res */
-    	LDA = Ncv;
-    	Nrhs = 1;
-    	LDB = Ncv;
-    	dgesv_(&LDA, &Nrhs, Jac, &LDA, pivot, res, &LDB, &Ok);
-    	
-    	/* Update q */
-        for (i = 0; i < Ncv; i++) 
-        {
-            q[i] -= res[i];
-        }
-    	
-    	/* Compute new norm of residu */
-        NDinterp(fgm, q, xi);
-        normres = 0.0;
-        for (i = 0; i < Ncv; i++) 
-        {
-            res[i] = xi[i] - x[i];
-            normres += fabs(res[i]); 
-        }
-
-    	iter++;
-        // printf("%i %e\n",iter,normres);
-        
-    }
-    
-    for (i = 0; i < Nvar; i++)
-    {
-        f[i] = xi[i];
-    }
-
-    return EXIT_SUCCESS;
-};
-
-int NDinterp (FGM *fgm, double *x, double *f)
-{
-    int i, ii, ivar;
-    int Nvar = fgm->Nvar;
-    int Ncv = fgm->Ncv;
-    int twopowerN = (int) pow(2.0,Ncv);
-        
-    int jm[Ncv];    
-    int jj;
-    
-    double wm[Ncv];
-    double ww;
-    
-    for (i = 0; i < Ncv ; i++) 
-    {
-        // Indices
-        jm[i] = (int) *(x+i);
-        jm[i] = min(jm[i],fgm->Ngrid[i]-1);
-        jm[i] = max(jm[i],0);
-        
-        // Weights
-        wm[i] = 1.0 - (*(x+i) - (double) jm[i]);
-    }
-    // printf("%i %i %e %e \n",jm[0],jm[1],wm[0],wm[1]);
-
-    
-    for (ivar = 0; ivar < Nvar ; ivar++) { *(f+ivar) = 0.0; };
-    
-    for (i = 0; i < twopowerN ; i++) 
-    {    
-        // Initialize
-        jj = 0;
-        ww = 1.0;
-        
-        for (ii = Ncv-1; ii > -1; ii--) 
-        {
-            if ( (1 << ii) & i ) 
-            {
-                jj = jj * fgm->Ngrid[ii] + jm[ii] + 1;
-                ww = ww * (1.0 - wm[ii]);
-            } 
-            else 
-            {
-                jj = jj * fgm->Ngrid[ii] + jm[ii];
-                ww = ww * wm[ii];
-            }                 
-        }
-        
-        // printf("%i %e \n",jj,ww);
-        for (ivar = 0; ivar < Nvar ; ivar++) 
-        { 
-            *(f+ivar) = *(f+ivar) + ww * fgm->data[jj*Nvar+ivar];
-        }
-    }
-    
-    return EXIT_SUCCESS;
-};
-

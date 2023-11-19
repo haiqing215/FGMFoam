@@ -835,10 +835,10 @@ $(WM_PROJECT_DIR)/src/TurbulenceModels/turbulenceModels/lnInclude/RASModel.C \
 $(WM_PROJECT_DIR)/src/TurbulenceModels/turbulenceModels/lnInclude/LESModel.H \
 $(WM_PROJECT_DIR)/src/TurbulenceModels/turbulenceModels/lnInclude/LESdelta.H \
 $(WM_PROJECT_DIR)/src/TurbulenceModels/turbulenceModels/lnInclude/LESModel.C \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/fluidThermo.H \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/basicThermo.H \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/fluidThermo.H \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/basicThermo.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/wordIOList.H \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/basicThermoTemplates.C \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/basicThermoTemplates.C \
 $(WM_PROJECT_DIR)/src/transportModels/compressible/lnInclude/compressibleTransportModel.H \
 $(WM_PROJECT_DIR)/src/TurbulenceModels/compressible/lnInclude/turbulentFluidThermoModel.C \
 combustionModel/combustionModelI.H \
