@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --partition=mech.pf.q
-#SBATCH --job-name=RANS_CF
+#SBATCH --job-name=LES_FGM
 #SBATCH --nodes=1
 #SBATCH --ntasks=64
 #SBATCH --exclude=mech-computeA008,mech-computeB004
@@ -23,9 +23,9 @@ Ubulk=10.0              # [m/s]
 cellSize=175.0e-6       # [m]
 
 nProcs=64                # [-]
-simtime=5.0e-4.          # [s]
+simtime=5.0e-4           # [s]
 simtimestep=1.0e-6       # [s]
-simwritesteps=50        # [-]
+simwritesteps=100        # [-]
 
 simwritetime=$(echo $simtime $simwritesteps | awk '{printf ($1/$2) }' )
 
