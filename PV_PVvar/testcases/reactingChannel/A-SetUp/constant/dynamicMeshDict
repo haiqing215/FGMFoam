@@ -22,13 +22,13 @@ allowableImbalance  0.10;
 adaptCriteria
 {
     type       fieldBounds;
-    fieldName  PV;
-    lowerBound 0.01;
-    upperBound 0.05;
+    fieldName  deltaPV;
+    lowerBound 0.0078;
+    upperBound 1.0;
 }
 
 // How often to refine
-refineInterval  100;
+refineInterval  10;
 
 // Field to be refinement on
 //field           magGradT;
@@ -38,7 +38,7 @@ refineInterval  100;
 //upperRefineLevel 1.0e100;
 
 // If value < unrefineLevel unrefine
-//unrefineLevel   10;
+unrefineLevel   0.0078;
 
 // Have slower than 2:1 refinement
 nBufferLayers   1;

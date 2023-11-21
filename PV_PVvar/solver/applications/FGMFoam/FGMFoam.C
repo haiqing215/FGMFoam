@@ -203,6 +203,8 @@ int main(int argc, char *argv[])
         mu    = thermo.mu();
         alpha = thermo.alpha();
 
+        deltaPV = mag(fvc::grad(PV))*pow(cellVolumes,1.0/3.0);
+
         runTime.write();
 
         runTime.printExecutionTime(Info);

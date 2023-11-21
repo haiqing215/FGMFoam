@@ -79,6 +79,9 @@ mpirun -n $nProcs FGMFoam -parallel > log.FGMFoam
     
 grep 'ExecutionTime' log.FGMFoam | tail -1 | cut -d "C" -f 1
 
+[ -f ${PWD}/log.reconstructParMesh ] && rm ${PWD}/log.reconstructParMesh
+runApplication reconstructParMesh
+
 [ -f ${PWD}/log.reconstructPar ] && rm ${PWD}/log.reconstructPar
 reconstructPar > log.reconstructPar
 #rm -rf processor*

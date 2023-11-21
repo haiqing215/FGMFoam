@@ -230,3 +230,18 @@ volScalarField cellVolumes
     mesh,
     dimensionedScalar(dimensionSet(0,3,0,0,0,0,0), 1E-10)
 );
+
+// Field with change in PV per cell. This is needed for the adaptive mesh refinement.
+volScalarField deltaPV
+(
+    IOobject
+    (
+        "deltaPV",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimensionedScalar(dimensionSet(0,0,0,0,0,0,0), 1E-10)
+);
