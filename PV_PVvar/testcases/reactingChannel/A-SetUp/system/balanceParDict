@@ -17,7 +17,7 @@ FoamFile
 
 numberOfSubdomains NPROCS;
 
-method          ptscotch; //clsutered //scotch
+method          scotch; //ptscotch; //clsutered //scotch
 
 constraints
 {

@@ -3,7 +3,7 @@
 #SBATCH --partition=mech.pf.q
 #SBATCH --job-name=LES_FGM
 #SBATCH --nodes=1
-#SBATCH --ntasks=64
+#SBATCH --ntasks=8
 #SBATCH --exclude=mech-computeA008,mech-computeB004
 #SBATCH --time=180:00:00
 #SBATCH --error=slurm-%j.err
@@ -22,10 +22,10 @@ PV1=0.078011992680627   # [-]
 Ubulk=10.0              # [m/s]
 cellSize=175.0e-6       # [m]
 
-nProcs=64                # [-]
-simtime=5.0e-4           # [s]
+nProcs=8                 # [-]
+simtime=1.0e-4           # [s]
 simtimestep=1.0e-6       # [s]
-simwritesteps=100        # [-]
+simwritesteps=10         # [-]
 
 simwritetime=$(echo $simtime $simwritesteps | awk '{printf ($1/$2) }' )
 
