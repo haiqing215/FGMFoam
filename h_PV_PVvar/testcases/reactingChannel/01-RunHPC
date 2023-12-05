@@ -3,7 +3,7 @@
 #SBATCH --partition=mech.pf.q
 #SBATCH --job-name=LES_FGM
 #SBATCH --nodes=1
-#SBATCH --ntasks=8
+#SBATCH --ntasks=64
 #SBATCH --exclude=mech-computeA008,mech-computeB004
 #SBATCH --time=180:00:00
 #SBATCH --error=slurm-%j.err
@@ -19,16 +19,16 @@ p0=101325.0             # [Pa]
 T0=300                  # [K]
 h0=2.1482e3
 PV0=0.0                 # [-]
-PV1=0.078011992680627   # [-]
+PV1=8.5714364356152e-02  # [-]
 Ubulk=10.0              # [m/s]
 Twall=300               # [K]
 
 cellSize=175.0e-6       # [m]
 
-nProcs=8                 # [-]
-simtime=1.0e-4           # [s]
+nProcs=64                 # [-]
+simtime=1.0e-2           # [s]
 simtimestep=1.0e-6       # [s]
-simwritesteps=10         # [-]
+simwritesteps=100        # [-]
 
 simwritetime=$(echo $simtime $simwritesteps | awk '{printf ($1/$2) }' )
 
@@ -86,8 +86,8 @@ mpirun -n $nProcs FGMFoam -parallel > log.FGMFoam
     
 grep 'ExecutionTime' log.FGMFoam | tail -1 | cut -d "C" -f 1
 
-[ -f ${PWD}/log.reconstructParMesh ] && rm ${PWD}/log.reconstructParMesh
-runApplication reconstructParMesh
+#[ -f ${PWD}/log.reconstructParMesh ] && rm ${PWD}/log.reconstructParMesh
+#runApplication reconstructParMesh
 
 [ -f ${PWD}/log.reconstructPar ] && rm ${PWD}/log.reconstructPar
 reconstructPar > log.reconstructPar
