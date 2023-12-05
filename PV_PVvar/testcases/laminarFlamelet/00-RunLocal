@@ -11,13 +11,13 @@ echo " "
 p0=101325.0             # [Pa]
 T0=300.0                # [K]
 
-PV0=0.0                 # [-]
-PV1=7.8011922680627e-02 # [-]
+PV0=0.0                  # [-]
+PV1=8.5714364356152e-02  # [-]
 
-nProcs=6                # [-]
-simtime=2.0e-1          # [s]
+nProcs=8                # [-]
+simtime=2.0e-5          # [s]
 simtimestep=2.0e-7      # [s]
-simwritesteps=50         # [-]
+simwritesteps=100         # [-]
 
 simwritetime=$(echo $simtime $simwritesteps | awk '{printf ($1/$2) }' )
 
@@ -60,6 +60,10 @@ runApplication blockMesh
 [ -f ${PWD}/log.setFields ] && rm ${PWD}/log.setFields
 runApplication setFields
  
+#[ -f ${PWD}/log.FGMFoam ] && rm ${PWD}/log.FGMFoam
+#runApplication FGMFoam
+#exit 1
+
 [ -f ${PWD}/log.decomposePar ] && rm ${PWD}/log.decomposePar
 runApplication decomposePar
    

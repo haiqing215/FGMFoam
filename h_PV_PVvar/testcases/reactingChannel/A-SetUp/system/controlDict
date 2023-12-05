@@ -1,0 +1,219 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application       FGMFoam;
+startFrom         latestTime;
+startTime         0;
+stopAt            endTime;
+endTime           SIMULATIONTIME;
+deltaT            SIMULATIONDELTATIME;
+writeControl      adjustableRunTime;
+writeInterval     SIMULATIONWRITETIME; //0.005;
+purgeWrite        200;
+writeFormat       ascii;
+writePrecision    9;
+writeCompression  off;
+timeFormat        general;
+timePrecision     11;
+runTimeModifiable true;
+adjustTimeStep    no;
+maxCo             0.5;//1.0;
+maxDeltaT         1;
+
+//libs ("libdynamicLoadBalanceFvMesh.so");
+libs ("liblookUpBoundaryCondition.so");
+
+functions
+{
+/*    writeValues
+    {
+        type            writeObjects;
+        libs            (utilityFunctionObjects);
+        enabled         false;
+ 
+        objects         (p U);
+        writeControl    adjustableRunTime;
+        writeInterval   SIMULATIONWRITETIME;
+    }
+
+    fieldAverage
+    {
+        type            fieldAverage;
+        libs            (fieldFunctionObjects);
+        executeControl  timeStep;
+        timeStart       10.0;
+        //writeControl    SIMULATIONWRITETIME; //timeStep;
+        writeControl    adjustableRunTime;
+        writeInterval   SIMULATIONWRITETIME;
+        enabled         false;
+        
+        fields
+        (
+            U
+            {
+                mean            yes;
+                prime2Mean      yes;
+                base            time;
+            }
+        );
+
+    }
+
+    turbulenceFields
+    {
+        type            turbulenceFields;
+        libs            (fieldFunctionObjects);
+        executeControl  timeStep;
+        timeStart       10.0;
+        //writeControl    SIMULATIONWRITETIME; //timeStep;
+        writeControl    adjustableRunTime;
+        writeInterval   SIMULATIONWRITETIME;
+        enabled         false;
+
+        field           R;
+    }
+
+    TKECalculation
+    {
+        type            coded;
+        libs            (libutilityFunctionObjects);
+        name            TKECalculation;
+        executeControl  timeStep;
+        timeStart       10.0;
+        //writeControl    SIMULATIONWRITETIME; //timeStep;
+        writeControl    adjustableRunTime;
+        writeInterval   SIMULATIONWRITETIME;
+        enabled         false;
+*/
+    /*---------------------------------------------------------------------------*\
+
+        Total Turbulent Kinect Energy Evaluation
+            ** Requires fieldAverage Function to Obtain UPrime2Mean**
+                ** Resolved Reynolds Stress Tensor
+            ** Requires turbulenceFields Function to Obtain R**
+                ** Subgrid Reynolds Stress Tensor
+
+    \*---------------------------------------------------------------------------*/
+/*
+        codeExecute
+        #{
+			static autoPtr<volScalarField> totalTKE;
+			static autoPtr<volScalarField> resolvedTKE;
+			
+			if
+			(
+		        mesh().foundObject<volSymmTensorField>("UPrime2Mean")
+			    &&
+			    mesh().foundObject<volSymmTensorField>("turbulenceProperties:R")
+			    &&
+			    (mesh().foundObject<volScalarField>("totalTKE") == 0)
+				&&
+			    (mesh().foundObject<volScalarField>("resolvedTKE") == 0)
+
+		    )
+			{
+                Info << "Resolved Turbulent Kinetic Energy Factor:" << endl;
+				Info << "    Initialising" << endl;
+				Info << "	 Calculating" << nl << endl;
+				
+				totalTKE.set
+				(
+					new volScalarField
+					(
+						IOobject
+						(
+							"totalTKE",
+							mesh().time().timeName(),
+							mesh(),
+							IOobject::NO_READ,
+							IOobject::AUTO_WRITE
+						),
+						mesh(),
+						dimensionedScalar("totalTKE", dimensionSet(0,2,-2,0,0,0,0) , 0)
+					)
+				);
+				
+				resolvedTKE.set
+				(
+					new volScalarField
+					(
+						IOobject
+						(
+							"resolvedTKE",
+							mesh().time().timeName(),
+							mesh(),
+							IOobject::NO_READ,
+							IOobject::AUTO_WRITE
+						),
+						mesh(),
+						dimensionedScalar("resolvedTKE", dimensionSet(0,2,-2,0,0,0,0) , 0)
+					)
+				);
+				
+				const volSymmTensorField& R = mesh().lookupObjectRef<volSymmTensorField>("turbulenceProperties:R");
+				const volSymmTensorField& UPrime2Mean = mesh().lookupObjectRef<volSymmTensorField>("UPrime2Mean");
+
+				volScalarField& totalTKE = mesh().lookupObjectRef<volScalarField>("totalTKE");
+				totalTKE = (0.5 * tr(R)) + (0.5 * tr(UPrime2Mean));
+                                totalTKE.write();
+				
+				volScalarField& resolvedTKE = mesh().lookupObjectRef<volScalarField>("resolvedTKE");
+				resolvedTKE = (0.5 * tr(UPrime2Mean));
+                                resolvedTKE.write();
+
+		    }
+			
+			else if
+			(
+		        mesh().foundObject<volSymmTensorField>("UPrime2Mean")
+			    &&
+			    mesh().foundObject<volSymmTensorField>("turbulenceProperties:R")
+			    &&
+			    (mesh().foundObject<volScalarField>("totalTKE"))
+				&&
+			    (mesh().foundObject<volScalarField>("resolvedTKE"))
+		    )
+			{
+				Info << "Turbulent Kinetic Energy:" << endl;
+				Info << "    Initialising" << endl;
+				Info << "	 Calculating" << nl << endl;
+				
+				const volSymmTensorField& R = mesh().lookupObjectRef<volSymmTensorField>("turbulenceProperties:R");
+				const volSymmTensorField& UPrime2Mean = mesh().lookupObjectRef<volSymmTensorField>("UPrime2Mean");
+
+				volScalarField& totalTKE = mesh().lookupObjectRef<volScalarField>("totalTKE");
+				totalTKE = (0.5 * tr(R)) + (0.5 * tr(UPrime2Mean));
+                                totalTKE.write();
+				
+				volScalarField& resolvedTKE = mesh().lookupObjectRef<volScalarField>("resolvedTKE");
+				resolvedTKE = (0.5 * tr(UPrime2Mean));
+                                resolvedTKE.write();
+	        }
+			
+			else
+            {
+                Info << "Turbulent Kinect Energy:" << endl;
+                Warning << endl
+                        << "    Unable to Calculate Turbulent Kinect Energy" << endl
+                        << "    UPrime2Mean and/or R Unavailable" << endl
+                        << "    Enable fieldAverage and turbulenceFields Functions" << nl << endl;
+            }
+        #};
+    }
+*/
+}
+// ************************************************************************* //

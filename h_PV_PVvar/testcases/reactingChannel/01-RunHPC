@@ -1,0 +1,98 @@
+#!/bin/bash
+
+#SBATCH --partition=mech.pf.q
+#SBATCH --job-name=LES_FGM
+#SBATCH --nodes=1
+#SBATCH --ntasks=8
+#SBATCH --exclude=mech-computeA008,mech-computeB004
+#SBATCH --time=180:00:00
+#SBATCH --error=slurm-%j.err
+#SBATCH --output=slurm-%j.out
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=s.n.j.schepers@student.tue.nl
+
+module load NewBuild/AMD OpenFOAM/v2206-foss-2022a
+source ${FOAM_BASH}
+
+# ==> Define input parameters
+p0=101325.0             # [Pa]
+T0=300                  # [K]
+h0=2.1482e3
+PV0=0.0                 # [-]
+PV1=0.078011992680627   # [-]
+Ubulk=10.0              # [m/s]
+Twall=300               # [K]
+
+cellSize=175.0e-6       # [m]
+
+nProcs=8                 # [-]
+simtime=1.0e-4           # [s]
+simtimestep=1.0e-6       # [s]
+simwritesteps=10         # [-]
+
+simwritetime=$(echo $simtime $simwritesteps | awk '{printf ($1/$2) }' )
+
+# ==> Go to Results-folder
+[ -d ${PWD}/B-Results/ ] && rm -rf ${PWD}/B-Results/
+[ ! -d ${PWD}/B-Results/ ] && mkdir B-Results/
+cd B-Results/
+ 
+# ==> Clean-up and copy default files 
+[ -d ${PWD}/constant ] && rm -rf ${PWD}/constant
+[ -d ${PWD}/system ] && rm -rf ${PWD}/system
+[ -d ${PWD}/postProcessing/ ] && rm -rf ${PWD}/postProcessing/
+[ -f ${PWD}/foam.foam ] && rm ${PWD}/foam.foam
+for resultdir in 0*/; do rm -rf ${resultdir}; done
+        
+cp -r ../A-SetUp/constant .
+cp -r ../A-SetUp/system .
+cp -r ../A-SetUp/0 .
+cp ../A-SetUp/foam.foam .	
+
+# ==> Set simulation settings
+sed -i "s/SIMULATIONTIME/$simtime/" system/controlDict
+sed -i "s/SIMULATIONDELTATIME/$simtimestep/" system/controlDict
+sed -i "s/SIMULATIONWRITETIME/$simwritetime/" system/controlDict
+		
+sed -i "s/NPROCS/${nProcs}/" system/decomposeParDict
+sed -i "s/NPROCS/${nProcs}/" system/balanceParDict
+    
+sed -i "s/CELLSIZE/${cellSize}/" system/blockMeshDict
+
+sed -i "s/INITIALENTHALPY/${h0}/" 0/h
+
+sed -i "s/INLETTEMPERATURE/${T0}/" 0/T
+sed -i "s/WALLTEMPERATURE/${Twall}/" 0/T
+
+sed -i "s/INITIALPROGRESSVARIABLE/${PV0}/" system/setFieldsDict
+sed -i "s/FINALPROGRESSVARIABLE/${PV1}/" system/setFieldsDict
+      
+# ==> Run simulation
+[ -d ${PWD}/constant/polyMesh ] && rm -rf ${PWD}/constant/polyMesh
+[ -f ${PWD}/log.blockMesh ] && rm ${PWD}/log.blockMesh
+blockMesh > log.blockMesh
+
+[ -f ${PWD}/log.setFields ] && rm ${PWD}/log.setFields
+setFields > log.setFields
+
+#[ -f ${PWD}/log.setExprFields ] && rm ${PWD}/log.setExprFields
+#setExprFields > log.setExprFields
+ 
+[ -f ${PWD}/log.decomposePar ] && rm ${PWD}/log.decomposePar
+decomposePar > log.decomposePar
+  
+[ -f ${PWD}/log.FGMFoam ] && rm ${PWD}/log.FGMFoam
+mpirun -n $nProcs FGMFoam -parallel > log.FGMFoam
+    
+grep 'ExecutionTime' log.FGMFoam | tail -1 | cut -d "C" -f 1
+
+[ -f ${PWD}/log.reconstructParMesh ] && rm ${PWD}/log.reconstructParMesh
+runApplication reconstructParMesh
+
+[ -f ${PWD}/log.reconstructPar ] && rm ${PWD}/log.reconstructPar
+reconstructPar > log.reconstructPar
+#rm -rf processor*
+
+exit 0
+
+#------------------------------------------------------------------------------

@@ -10,19 +10,19 @@ clear
 
 # CLEAN-UP LIBRARIES
 #wclean ./src/dynamicLoadBalanceFvMesh
-#wclean ./src/thermophysicalModels/basic/
-#wclean ./src/thermophysicalModels/reactionThermo/
-#wclean ./src/lookUp/
-#wclean ./src/combustionModel/
+wclean ./src/thermophysicalModels/basic/
+wclean ./src/thermophysicalModels/reactionThermo/
+wclean ./src/lookUp/
+wclean ./src/combustionModel/
 # CLEAN-UP SOLVERS
 wclean ./applications/FGMFoam/
 
 # CREATE LIBRARIES
 #wmake $makeType ./src/dynamicLoadBalanceFvMesh
-#wmake $makeType ./src/thermophysicalModels/basic/
-#wmake $makeType ./src/thermophysicalModels/reactionThermo/
-#wmake $makeType ./src/lookUp/
-#wmake $makeType ./src/combustionModel/
+wmake $makeType ./src/thermophysicalModels/basic/
+wmake $makeType ./src/thermophysicalModels/reactionThermo/
+wmake $makeType ./src/lookUp/
+wmake $makeType ./src/combustionModel/
 # CREATE SOLVERS
 wmake ./applications/FGMFoam/
 

@@ -2,9 +2,9 @@ $(OBJECTS_DIR)/chemistryReaders/chemistryReader/makeChemistryReaders.C.dep: \
 chemistryReaders/chemistryReader/makeChemistryReaders.C \
 makeReactionThermo.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/addToRunTimeSelectionTable.H \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/makeThermo.H \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/fluidThermo.H \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/basicThermo.H \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/makeThermo.H \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/fluidThermo.H \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/basicThermo.H \
 $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/volFields.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/GeometricFields.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/GeometricScalarField.H \
@@ -586,7 +586,7 @@ $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/calculatedFvPatchField.C \
 $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/calculatedFvPatchFields.H \
 $(WM_PROJECT_DIR)/src/finiteVolume/lnInclude/volFieldsI.H \
 $(WM_PROJECT_DIR)/src/OpenFOAM/lnInclude/wordIOList.H \
-/home/sschepers/Codes/OpenFOAM/FGMFoam_PVVarPV_Scaled/solver/src/thermophysicalModels/basic/lnInclude/basicThermoTemplates.C \
+/home/sschepers/Codes/OpenFOAM/FGMFoam/PV_PVvar/solver/src/thermophysicalModels/basic/lnInclude/basicThermoTemplates.C \
 $(WM_PROJECT_DIR)/src/transportModels/compressible/lnInclude/compressibleTransportModel.H \
 lnInclude/SpecieMixture.H \
 lnInclude/SpecieMixture.C \

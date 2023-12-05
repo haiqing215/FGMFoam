@@ -530,197 +530,192 @@ int lookupFGM_3Dr(FGM *fgm, double *x, double *f)
 
 int lookupFGM_ND (FGM *fgm, double *cv, double *f)
 {
-	/* void free (void* f); */
-	int dd, j, ivar;
-	int nk[2]; /* iData: index for the FGM data */
-	int *S = NULL, *jd = NULL; /* auxiliary vectors for look-up */
-	int *jmin = NULL, *jmax = NULL; /* min & max indices */
-	int dummy0=0;  /* dummies for array computations */
-	int icv=0, index_cv=0;
-	int jleft, jright, mid;
-	double etaleft, etaright, etamid;
-	double cvmin, cvmax, eta, wp;
-	double cvhlp[2]; /*,cvminn[fgm->Ncv],cvmaxx[fgm->Ncv]; */
-	/* [2] is the # of points required for the interpolation */
+    /* void free (void* f); */
+    int dd, j, ivar;
+    int nk[2]; /* iData: index for the FGM data */
+    int *S = NULL, *jd = NULL; /* auxiliary vectors for look-up */
+    int *jmin = NULL, *jmax = NULL; /* min & max indices */
+    int dummy0=0;  /* dummies for array computations */
+    int icv=0, index_cv=0;
+    int jleft, jright, mid;
+    double etaleft, etaright, etamid;
+    double cvmin, cvmax, eta, wp;
+    double cvhlp[2]; /*,cvminn[fgm->Ncv],cvmaxx[fgm->Ncv]; */
+    /* [2] is the # of points required for the interpolation */
 
-	/*  Gridpoint index and weight */
-	int l0 = pow(2,fgm->Ncv); /* # of points */
-	int *jj = NULL;
-	double *wj = NULL;
+    /*  Gridpoint index and weight */
+    int l0 = pow(2,fgm->Ncv); /* # of points */
+    int *jj = NULL;
+    double *wj = NULL;
 
-	S = malloc(sizeof(int) * fgm->Ncv);
-	jd = malloc(sizeof(int) * fgm->Ncv+1);
-	jmin = malloc(sizeof(int) * fgm->Ncv);
-	jmax = malloc(sizeof(int) * fgm->Ncv);
-	jj = malloc(sizeof(int) * l0);
-	wj = malloc(sizeof(double) * l0);
+    S = malloc(sizeof(int) * fgm->Ncv);
+    jd = malloc(sizeof(int) * fgm->Ncv+1);
+    jmin = malloc(sizeof(int) * fgm->Ncv);
+    jmax = malloc(sizeof(int) * fgm->Ncv);
+    jj = malloc(sizeof(int) * l0);
+    wj = malloc(sizeof(double) * l0);
 
+    int l1=0;
+    S[0] = 1;
+    for( dummy0=1; dummy0<fgm->Ncv; dummy0++ )
+    {
+        l1 = fgm->Ngrid[dummy0-1];
+        S[dummy0] = S[dummy0-1]*l1;
+    }
 
+    jd[0] = 1;
+    for( dummy0=0; dummy0<fgm->Ncv; dummy0++ )
+    {
+        jd[dummy0+1] = pow(2, dummy0+1);
+    }
 
+     /* Min and max indices for each dimension */
+    for( dummy0=0; dummy0<fgm->Ncv; dummy0++ )
+    {
+        jmin[dummy0] = 1;
+        jmax[dummy0] = fgm->Ngrid[dummy0]-1;
+    }
 
-	int l1=0;
-	S[0] = 1;
-	for( dummy0=1; dummy0<fgm->Ncv; dummy0++ )
-	{
-		l1 = fgm->Ngrid[dummy0-1];
-		S[dummy0] = S[dummy0-1]*l1;
-	}
+    /*  Evaluate the weights */
+    for ( dummy0=0; dummy0<l0; dummy0++ ) /* setting to initial values for each look-up */
+    {
+        jj[dummy0] = 1;
+        wj[dummy0] = 1.0;
+    }
 
-	jd[0] = 1;
-	for( dummy0=0; dummy0<fgm->Ncv; dummy0++ )
-	{
-		jd[dummy0+1] = pow(2, dummy0+1);
-	}
+    for ( dd=0; dd<fgm->Ncv; dd++ ) /* loop for each CV */
+    {
+        /* Set the initial values to zero */
+        cvmin=0.0, cvmax=0.0;
+        eta = 0.0, wp = 0.0;
+        cvhlp[0] = 0.0, cvhlp[1] = 0.0;
 
-	/* Min and max indices for each dimension */
-	for( dummy0=0; dummy0<fgm->Ncv; dummy0++ )
-	{
-		jmin[dummy0] = 1;
-		jmax[dummy0] = fgm->Ngrid[dummy0]-1;
-	}
+        for ( icv=0; icv<jd[dd]; icv++ )
+        {
+            cvmin = cvmin + wj[icv]*fgm->data[(jj[icv]-1)*fgm->Nvar+dd];
+            cvmax = cvmax + wj[icv]*fgm->data[(jj[icv]+jmax[dd]*S[dd]-1)*fgm->Nvar+dd];
 
-	/*  Evaluate the weights */
-	for ( dummy0=0; dummy0<l0; dummy0++ ) /* setting to initial values for each look-up */
-	{
-		jj[dummy0] = 1;
-		wj[dummy0] = 1.0;
-	}
+        }
+        eta = (*(cv+dd) - cvmin)/(cvmax - cvmin + 1e-8); /* scaling the CVs */
+        eta = max(eta, 0.0);
+        eta = min(eta, 1.0);
 
-	for ( dd=0; dd<fgm->Ncv; dd++ ) /* loop for each CV */
-	{
-		/* Set the initial values to zero */
-		cvmin=0.0, cvmax=0.0;
-		eta = 0.0, wp = 0.0;
-		cvhlp[0] = 0.0,	cvhlp[1] = 0.0;
+        /* Find grid point index in the current dimension */
+        if (dd > -1) /* for now grid inversion is used for all variables */
+        {
+            /* Analitycal inversion of grid distribution */
+            if ( fgm->gridpower[dd] >= 0.0 )
+            {
+                eta = pow(eta, fgm->gridpower[dd]);
+            }
 
+            j = floor(eta * jmax[dd] + 1);
+            
+            j = max(j, jmin[dd]);
+            j = min(j, jmax[dd]);
+        }
+        else
+        {
+            /* Binary search */
+            if (fabs(cvmin-cvmax)<1e-10)
+            {
+                j = jmin[dd];
+            }
+            else
+            {
+                jleft = 0;
+                jright = jmax[dd];
 
-		for ( icv=0; icv<jd[dd]; icv++ )
-		{
-			cvmin = cvmin + wj[icv]*fgm->data[(jj[icv]-1)*fgm->Nvar+dd];
-			cvmax = cvmax + wj[icv]*fgm->data[(jj[icv]+jmax[dd]*S[dd]-1)*fgm->Nvar+dd];
+                etaleft = 0.0;
+                etaright = 1.0;
+                while (jleft<jright-1)
+                {
+                    if ((jright - jleft) == 2)
+                    {
+                        mid = jleft +1;
+                    }
+                    else
+                    {
+                        mid = ceil( ((double) (jleft + jright)) / 2.0);
+                    }
 
-		}
+                    etamid = 0.0;
+                    for ( icv=0; icv<jd[dd]; icv++ )
+                    {
+                        etamid = etamid + wj[icv]*fgm->data[(jj[icv]+mid*S[dd]-1)*fgm->Nvar+dd];
+                    }
+                    etamid = (etamid - cvmin ) / (cvmax - cvmin);
 
-		eta = (*(cv+dd) - cvmin)/(cvmax - cvmin); /* scaling the CVs */
-		eta = max(eta, 0.0);
-		eta = min(eta, 1.0);
+                    if (eta < etamid)
+                    {
+                        jright = mid;
+                        etaright = etamid;
+                    }
+                    else
+                    {
+                        jleft = mid;
+                        etaleft = etamid;
+                    }
+                }
+                j = jright;
+            }
 
-		/* Find grid point index in the current dimension */
-		if (dd > -1) /* for now grid inversion is used for all variables */
-		{
-			/* Analitycal inversion of grid distribution */
-			if ( fgm->gridpower[dd] >= 0.0 )
-			{
-				eta = pow(eta, fgm->gridpower[dd]);
-			}
-
-			j = floor(eta * jmax[dd] + 1);
-
-			j = max(j, jmin[dd]);
-			j = min(j, jmax[dd]);
-		}
-		else
-		{
-			/* Binary search */
-			if (fabs(cvmin-cvmax)<1e-10)
-			{
-				j = jmin[dd];
-			}
-			else
-			{
-				jleft = 0;
-				jright = jmax[dd];
-
-				etaleft = 0.0;
-				etaright = 1.0;
-				while (jleft<jright-1)
-				{
-					if ((jright - jleft) == 2)
-					{
-						mid = jleft +1;
-					}
-					else
-					{
-						mid = ceil( ((double) (jleft + jright)) / 2.0);
-					}
-
-					etamid = 0.0;
-					for ( icv=0; icv<jd[dd]; icv++ )
-					{
-						etamid = etamid + wj[icv]*fgm->data[(jj[icv]+mid*S[dd]-1)*fgm->Nvar+dd];
-					}
-					etamid = (etamid - cvmin ) / (cvmax - cvmin);
-
-					if (eta < etamid)
-					{
-						jright = mid;
-						etaright = etamid;
-					}
-					else
-					{
-						jleft = mid;
-						etaleft = etamid;
-					}
-				}
-				j = jright;
-			}
-
-		}
+        }
 
 
 
-		/* ****************************
- 	 	Linear interpolation without extrapolation.
- 	 	Even if custom interpolation is used, the following needs to be
- 	 	computed for the cv values calculation in the subsequent dimensions.
+        /* ****************************
+        Linear interpolation without extrapolation.
+        Even if custom interpolation is used, the following needs to be
+        computed for the cv values calculation in the subsequent dimensions.
 
- 	 	Find the indexes of the gridpoints in the table */
-		for ( icv=0; icv<jd[dd]; icv++ )
-		{
-			jj[jd[dd]+icv] = jj[icv] + j*S[dd];
+        Find the indexes of the gridpoints in the table */
+        for ( icv=0; icv<jd[dd]; icv++ )
+        {
+            jj[jd[dd]+icv] = jj[icv] + j*S[dd];
 
-			jj[icv] = jj[icv] + (j-1)*S[dd];
+            jj[icv] = jj[icv] + (j-1)*S[dd];
 
-		}
+        }
 
-		/* Interpolate cv values at j and j+1 */
-		for ( icv=0; icv<jd[dd]; icv++ ) /*for ( icv=dd; icv<fgm->Ncv; icv++ ) */
-		{
-			cvhlp[0] = cvhlp[0] + wj[icv]*fgm->data[(jj[icv]-1)*fgm->Nvar+dd];
-			cvhlp[1] = cvhlp[1] + wj[icv]*fgm->data[(jj[jd[dd]+icv]-1)*fgm->Nvar+dd];
+        /* Interpolate cv values at j and j+1 */
+        for ( icv=0; icv<jd[dd]; icv++ ) /*for ( icv=dd; icv<fgm->Ncv; icv++ ) */
+        {
+            cvhlp[0] = cvhlp[0] + wj[icv]*fgm->data[(jj[icv]-1)*fgm->Nvar+dd];
+            cvhlp[1] = cvhlp[1] + wj[icv]*fgm->data[(jj[jd[dd]+icv]-1)*fgm->Nvar+dd];
 
-		}
+        }
 
-		/* Compute weights for the search in the next dimension */
-		wp = cvhlp[1] - cvhlp[0];
+        /* Compute weights for the search in the next dimension */
+        wp = cvhlp[1] - cvhlp[0];
+        
+        /* these weights are for the purpose of search in the next
+        dimension, so clipping them to the boundaries of this cell */
+        wp = min(max((*(cv+dd) - cvhlp[0])/(wp + 1e-8), 0.0), 1.0);
 
-		/* these weights are for the purpose of search in the next
- 	 	dimension, so clipping them to the boundaries of this cell */
-		wp = min(max((*(cv+dd) - cvhlp[0])/wp, 0.0), 1.0);
+        for ( icv=0; icv<jd[dd]; icv++ )
+        {
+            wj[jd[dd]+icv] = wj[icv]*wp;
+            wj[icv] = wj[icv]*(1.0-wp);
+        }
+    }
 
-		for ( icv=0; icv<jd[dd]; icv++ )
-		{
-			wj[jd[dd]+icv] = wj[icv]*wp;
-			wj[icv] = wj[icv]*(1.0-wp);
-		}
-	}
+    /*  Actual interpolation */
+    for ( ivar = 0; ivar<fgm->Nvar; ivar++ )
+    {
+        *(f + ivar) = 0.0;
+        for ( dummy0=0; dummy0<l0; dummy0++ )
+        {
+            *(f + ivar) = *(f + ivar) + wj[dummy0]*fgm->data[(jj[dummy0]-1)*fgm->Nvar+ivar];
+        }
+    }
 
-	/*  Actual interpolation */
-	for ( ivar = 0; ivar<fgm->Nvar; ivar++ )
-	{
-		*(f + ivar) = 0.0;
-		for ( dummy0=0; dummy0<l0; dummy0++ )
-		{
-			*(f + ivar) = *(f + ivar) + wj[dummy0]*fgm->data[(jj[dummy0]-1)*fgm->Nvar+ivar];
-		}
-	}
+    free(S);
+    free(jd);
+    free(jmin);
+    free(jmax);
+    free(jj);
+    free(wj);
 
-	free(S);
-	free(jd);
-	free(jmin);
-	free(jmax);
-	free(jj);
-	free(wj);
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 };

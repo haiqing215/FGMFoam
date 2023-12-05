@@ -1,0 +1,7 @@
+combustionModel/combustionModel.C
+CombustionModel/CombustionModel/CombustionModels.C
+
+FGM/FGM/FGMs.C
+FGM/baseFGM/baseFGMs.C
+
+LIB = $(FOAM_USER_LIBBIN)/libcombustionModelFGM

@@ -88,9 +88,6 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
     const clockTime clockTime_= clockTime();
     clockTime_.timeIncrement();
     
-    scalar PVmin = 0.0;
-    scalar PVmax = 7.801199268062700e-02;  // HARDCODED
-   
     // Initialise cp and lambda at arbitrary small values. These will be overwritten by the table data 
     scalar cp     = 1.0e-10;
     scalar lambda = 1.0e-10;
@@ -111,24 +108,13 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
     forAll(PVCells, celli)
     {
         // Scale the control variables
-        controlVariables_[0] = (PVCells[celli] - PVmin)/(PVmax - PVmin);
-        controlVariables_[1] = ((PVvarCells[celli] + pow(PVCells[celli],2) - pow(PVmin,2) - 2*controlVariables_[0]*(PVmin*PVmax - pow(PVmin,2)))/(pow((PVmax-PVmin),2))) - pow(controlVariables_[0],2);
+        controlVariables_[0] = PVCells[celli];
+        controlVariables_[1] = PVvarCells[celli];
         
-        // Edge treatment
-        if (controlVariables_[0] > 1.0) {
-            controlVariables_[0] = 1.0;
-        }
-        if (controlVariables_[0] < 0.0) {
-            controlVariables_[0] = 0.0;
-        }
-        if (controlVariables_[1] > 0.25) {
-            controlVariables_[1] = 0.25;
-        }
-        if (controlVariables_[1] < 0.0) {
-            controlVariables_[1] = 0.0;
-        }
-
-        lookupFGM_2D(fgm_,controlVariables_,variables_);
+        Info << "CV1: " << controlVariables_[0] << endl;
+        Info << "CV2: " << controlVariables_[1] << endl;
+        
+        lookupFGM_ND(fgm_,controlVariables_,variables_);
 
         for (int i = fgm_->Ncv; i < fgm_->Nvar; i++)
         {
@@ -166,13 +152,6 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
             Info << "WARNING: Cp and/or lambda do not have a value, alpha does not have a value" << endl;
         }
 
-        // Set sourceterm at zero when network limits are exceeded
-        if (PVCells[celli] <= PVmin || PVCells[celli] >= PVmax)
-        {
-            sourcePVCells[celli]    = 0.0;
-            PVsourcePVCells[celli]  = 0.0;
-        }
-
         // Source term is strictly positive
         if (sourcePVCells[celli] < 0.0)
         {
@@ -182,6 +161,13 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
         {
             PVsourcePVCells[celli]   = 0.0;
         }
+        
+        Info << "SourcePV: " << sourcePVCells[celli] << endl;
+        Info << "DPV: " << DPVCells[celli] << endl;
+        Info << "Temperature: " << TCells[celli] << endl;
+        Info << "Viscosity: " << muCells[celli] << endl;
+        Info << "Thermal Diffusivity: " << alphaCells[celli] << endl;
+        Info << "Density: " << psiCells[celli]*101325.0 << endl;
     }
 
     forAll(T_.boundaryFieldRef(), patchi)
@@ -199,23 +185,9 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
 
         forAll(pT, facei)
         {
-            controlVariables_[0] = (pPV[facei] - PVmin)/(PVmax - PVmin);
-            controlVariables_[1] = ((pPVvar[facei] + pow(pPV[facei],2) - pow(PVmin,2) - 2*controlVariables_[0]*(PVmin*PVmax - pow(PVmin,2)))/(pow((PVmax-PVmin),2))) - pow(controlVariables_[0],2);
+            controlVariables_[0] = pPV[facei];
+            controlVariables_[1] = pPVvar[facei];
  
-            // Edge treatment
-            if (controlVariables_[0] > 1.0) {
-                controlVariables_[0] = 1.0;
-            }
-            if (controlVariables_[0] < 0.0) {
-                controlVariables_[0] = 0.0;
-            }
-            if (controlVariables_[1] > 0.25) {
-                controlVariables_[1] = 0.25;
-            }
-            if (controlVariables_[1] < 0.0) {
-                controlVariables_[1] = 0.0;
-            }
-
             lookupFGM_2D(fgm_,controlVariables_,variables_);
             
             for (int i = fgm_->Ncv; i < fgm_->Nvar; i++)
@@ -241,6 +213,7 @@ void Foam::combustionModels::baseFGM<ReactionThermo>::update()
                     ppsi[facei] = variables_[i]/101325.0;
                 }
             }
+            
             
             // No reaction at the boundary faces
             psourcePV[facei]   = 0.0;
