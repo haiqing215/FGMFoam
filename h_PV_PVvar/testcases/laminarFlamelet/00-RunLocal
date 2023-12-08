@@ -15,8 +15,8 @@ h0=2.1482e3
 PV0=0.0                 # [-]
 PV1=8.5714364356152e-02  # [-]
 
-nProcs=8                # [-]
-simtime=2.0e-3          # [s]
+nProcs=6                # [-]
+simtime=2.0e-2          # [s]
 simtimestep=2.0e-7      # [s]
 simwritesteps=100        # [-]
 
